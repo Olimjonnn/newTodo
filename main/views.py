@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.decorators import APIView, api_view, action
-from rest_framework.generics import ListAPIView, ListCreateAPIView
+from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from .models import *
 from .serializer import *
 from rest_framework import status
@@ -70,4 +70,33 @@ class WorkFalse(ListAPIView):
                     a
                 }
         return Response(data)
-        
+
+class RUPworks(RetrieveUpdateDestroyAPIView):
+    queryset = Works.objects.all()
+    serializer_class =WorkSerializer
+
+    def retrieve(self, request, pk):
+        work = Works.objects.get(id=pk)
+        ser = WorkSerializer(work, many=False)
+        return Response(ser.data)
+
+
+    def update(self, request, pk):
+        try:
+            work = Works.objects.get(id=pk)
+            ser = WorkSerializer(work, data=request.data)
+            if ser.is_valid():
+                ser.save()
+                return Response('changed')
+            else:
+                return Response('error')
+        except Exception as err:
+            data = {
+                'error': f"{err}"
+            }
+            return Response(data)
+    
+    def destroy(self, request, pk):
+        work = Works.objects.get(id=pk)
+        work.delete()
+        return Response('deleted')
